@@ -35,6 +35,7 @@ async function run() {
     console.log("Connected to MongoDB!");
 
     const studentCollection = client.db("school-management").collection("student");
+    const userCollection = client.db("school-management").collection("users");
 
     app.get('/student', async (req, res) => {
       try {
@@ -60,6 +61,7 @@ async function run() {
     app.post('/users', async (req, res) => {
       try {
         const user = req.body;
+        console.log(user);
 
         // Validate request body
         if (!user.email || !user.name) {
@@ -82,6 +84,28 @@ async function run() {
         res.status(500).json({ message: "Failed to add user." });
       }
     });
+
+    app.delete('/users/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    })
+
+
+    app.patch('/users/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc)
+      res.send(result);
+
+    })
 
 
     // Send a ping to confirm a successful connection
