@@ -93,19 +93,37 @@ async function run() {
     })
 
 
-    app.patch('/users/admin/:id', async (req, res) => {
+    app.patch('/users/role/:id', async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      const { role } = req.body; // Extract the role from the request body
+      console.log(`Updating user ${id} to role: ${role}`);
+
+      if (!role || (role !== 'admin' && role !== 'user')) {
+        return res.status(400).send({ error: 'Invalid role specified' });
+      }
+
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
         $set: {
-          role: 'admin'
+          role: role // Dynamically set the role
         }
-      }
-      const result = await userCollection.updateOne(filter, updatedDoc)
-      res.send(result);
+      };
 
-    })
+      try {
+        const result = await userCollection.updateOne(filter, updatedDoc);
+        console.log(result);
+        if (result.modifiedCount > 0) {
+          
+          res.send({ message: 'User role updated successfully', result });
+        } else {
+          res.status(404).send({ error: 'User not found or role unchanged' });
+        }
+      } catch (error) {
+        console.error("Error updating user role:", error);
+        res.status(500).send({ error: 'Internal Server Error' });
+      }
+    });
+
 
 
     // Send a ping to confirm a successful connection
