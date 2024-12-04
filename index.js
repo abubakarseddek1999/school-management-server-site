@@ -36,6 +36,7 @@ async function run() {
 
     const studentCollection = client.db("school-management").collection("student");
     const userCollection = client.db("school-management").collection("users");
+    const teacherCollection = client.db("school-management").collection("teachers");
 
     app.get('/student', async (req, res) => {
       try {
@@ -46,6 +47,46 @@ async function run() {
         res.status(500).send({ message: "Failed to fetch students" });
       }
     });
+
+    // Add a new teacher
+    app.post('/teachers', async (req, res) => {
+      try {
+        const teacher = req.body;
+        console.log(teacher);
+
+        // Validate request body
+        // if (!teacher.subject || !teacher.name) {
+        //   return res.status(400).json({ message: "Name and email are required." });
+        // }
+        // Insert the new user
+        const result = await teacherCollection.insertOne(teacher);
+        res.status(201).json({ message: "User created successfully.", insertedId: result.insertedId });
+      } catch (error) {
+        console.error("Error adding user:", error);
+        res.status(500).json({ message: "Failed to add teacher." });
+      }
+    });
+
+    app.get('/teachers', async (req, res) => {
+      try {
+        const teachers = await teacherCollection.find().toArray();
+        res.status(200).json(teachers);
+      } catch (error) {
+        console.error("Error fetching teachers:", error);
+        res.status(500).json({ message: "Failed to fetch teachers." });
+      }
+    });
+
+    
+    app.delete('/teachers/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await teacherCollection.deleteOne(query);
+      res.send(result);
+    })
+
+
     // Fetch all users
     app.get('/users', async (req, res) => {
       try {
@@ -113,7 +154,7 @@ async function run() {
         const result = await userCollection.updateOne(filter, updatedDoc);
         console.log(result);
         if (result.modifiedCount > 0) {
-          
+
           res.send({ message: 'User role updated successfully', result });
         } else {
           res.status(404).send({ error: 'User not found or role unchanged' });
