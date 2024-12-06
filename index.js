@@ -66,6 +66,34 @@ async function run() {
         res.status(500).json({ message: "Failed to add teacher." });
       }
     });
+    // Update teacher
+    app.patch('/teachers/:id', async (req, res) => {
+      const item = req.body;
+      const id = req.params.id;
+
+      try {
+        // Ensure the ID is an ObjectId
+        const filter = { _id: new ObjectId(id) };
+        const updatedDoc = {
+          $set: {
+            name: item.name,
+            department: item.department,
+            subject: item.subject,
+            photo: item.photo,
+          },
+        };
+
+        // Perform the update
+        const result = await teacherCollection.updateOne(filter, updatedDoc);
+
+        // Send the result back to the client
+        res.send(result);
+      } catch (error) {
+        console.error('Error updating teacher:', error);
+        res.status(500).send({ error: 'Failed to update teacher data' });
+      }
+    });
+
 
     app.get('/teachers', async (req, res) => {
       try {
@@ -77,7 +105,7 @@ async function run() {
       }
     });
 
-    
+
     app.delete('/teachers/:id', async (req, res) => {
       const id = req.params.id;
       console.log(id);
